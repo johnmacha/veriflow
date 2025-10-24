@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if error_message %}
+<p>{{error_message}}</p>
+{% endif %}
+
+<form action="" method="post">
+{% csrf_token %}
+
+<div>
+    <label for="otp">otp: </label>
+    <input class="form-control" type="text" name="otp" required>
+</div>
+
+<div>
+    <input class="btn" type="submit" value="confirm">
+</div>
+</form>
+
+{% if error_message == "OTP expired. Please request a new one." %}
+<form action="{% url 'request_new_otp' %}" method="post" >
+    {% csrf_token %}
+    <button type="submit">Request New OTP</button>
+</form>
+{% endif %}
+
+{% if otp_valid_date %}
+<p>OTP expires in <span id="countdown"></span> seconds.</p>
+{% endif %}
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {{message.tags}}">
+        {{message}}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<script>
+ //Get expiry time from Django context
+ const otpExpiry = "{{ otp_valid_date|default:'' }}";
+
+ if(otpExpiry) {
+          const expiryTime = new Date(otpExpiry).getTime();
+         const countdownElem = document.getElementById("countdown");
+
+      const timer = setInterval(function() {
+          const now = new Date().getTime();
+          const distance = expiryTime - now;
+          const seconds = Math.floor(distance / 1000);
+
+          if (seconds > 0) {
+              countdownElem.innerText = seconds;
+          } else {
+              clearInterval(timer);
+              countdownElem.innerText = "0 (expired)";
+          }
+      
+ }, 1000);
+}
+
+</script>
+
+{% endblock %}
